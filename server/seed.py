@@ -5,10 +5,10 @@ from models import db, User
 with app.app_context():
     print("Seeding database...")
 
-    # Delete existing data to start fresh
+    # Delete existing data to start fresh.
     User.query.delete()
 
-    # Create new users
+    # Create new users.
     user1 = User(username='Karl', phone_number='254712345678')
     user1.password = 'password123'
 
