@@ -16,6 +16,7 @@ const TransactionHistory = ({ user }) => {
           setTransactions(allTransactions);
         });
     }
+    //.....transanctionHistory
   }, [user]);
 
   if (!user) {
@@ -33,11 +34,11 @@ const TransactionHistory = ({ user }) => {
       <h2>Transaction History</h2>
       <ul className="transaction-list">
         {transactions.map(t => (
-          <li key={t.id} className={transaction-item ${t.sender_id === user.id ? 'sent' : 'received'}}>
+          <li key={t.id} className={`transaction-item ${t.sender_id === user.id ? 'sent' : 'received'}`}>
             <div className="transaction-details">
               <strong>{t.sender_id === user.id ? 'Sent' : 'Received'}</strong>
               <p>Amount: ${t.amount.toFixed(2)}</p>
-              <p>{t.notes ? Notes: ${t.notes} : ''}</p>
+              <p>{t.notes ? `Notes: ${t.notes}` : ''}</p>
             </div>
             <div>
               <small>{new Date(t.timestamp).toLocaleString()}</small>
