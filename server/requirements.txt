@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+gunicorn
+Flask-RESTful
+Flask-Bcrypt
+Flask-Login
+bcrypt
