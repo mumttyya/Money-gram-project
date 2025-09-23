@@ -12,7 +12,7 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch('/check_session').then((r) => {
+    fetch('http://127.0.0.1:5555/signup').then((r) => {
       if (r.ok) {
         r.json().then(setUser);
       }
