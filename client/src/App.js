@@ -12,7 +12,7 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch('/check_session').then((r) => {
+    fetch('http://127.0.0.1:5555/signup').then((r) => {
       if (r.ok) {
         r.json().then(setUser);
       }
@@ -27,7 +27,8 @@ function App() {
           <Route path="/" element={<Dashboard user={user} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/signup" element={<Signup setUser={setUser} />} />
-          {/* New Routes... */}
+
+          {/* New Routes ..*/}
           <Route path="/send" element={<SendMoney user={user} />} />
           <Route path="/history" element={<TransactionHistory user={user} />} />
         </Routes>

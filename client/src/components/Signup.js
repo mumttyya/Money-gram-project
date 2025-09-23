@@ -27,8 +27,8 @@ const Signup = ({ setUser }) => {
       return res.json().then(setUser);
     } else {
       return res.json().then(errorData => {
-        // Log the error from the backend for detailed debugging.
-        console.error('Backend Error:', errorData);
+        // Log the error from the backend for detailed debugging
+        console.error('Backend Error:', errorData); 
         alert(errorData.error || 'Sign up failed.');
       });
     }

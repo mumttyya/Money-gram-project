@@ -1,0 +1,122 @@
+/* General Styles */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  padding: 1rem 2rem;
+  color: white;
+}
+
+.navbar h1 {
+  margin: 0;
+  color: white;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.navbar-links a, .navbar-links button {
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.navbar-links a:hover, .navbar-links button:hover {
+  text-decoration: underline;
+}
+
+/* Forms (Login/Signup/SendMoney) */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-container input {
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.form-container button {
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Dashboard */
+.dashboard-balance {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-top: 1rem;
+}
+
+/* Transaction History */
+.transaction-list {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 1rem;
+}
+
+.transaction-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-item.sent {
+  border-left: 4px solid #dc3545;
+}
+
+.transaction-item.received {
+  border-left: 4px solid #28a745;
+}
+
+.transaction-details {
+  text-align: left;
+}
