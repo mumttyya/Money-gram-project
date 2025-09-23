@@ -28,7 +28,7 @@ function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/signup" element={<Signup setUser={setUser} />} />
 
-          {/* New Routes */}
+          {/* New Routes ..*/}
           <Route path="/send" element={<SendMoney user={user} />} />
           <Route path="/history" element={<TransactionHistory user={user} />} />
         </Routes>
