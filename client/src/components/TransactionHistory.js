@@ -16,7 +16,7 @@ const TransactionHistory = ({ user }) => {
           setTransactions(allTransactions);
         });
     }
-    //.....transanctionHistory
+    //..transanctionHistory
   }, [user]);
 
   if (!user) {
