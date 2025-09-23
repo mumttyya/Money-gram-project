@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from sqlalchemy.orm import validates, relationship
+from sqlalchemy_serializer import SerializerMixin
 from bcrypt import hashpw, gensalt, checkpw
 import re
 
@@ -8,8 +9,8 @@ metadata = MetaData()
 db = SQLAlchemy(metadata=metadata)
 
 # User Model (Auth Branch)
-class User(db.Model):
-    _tablename_ = 'users'
+class User(db.Model, SerializerMixin): 
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
