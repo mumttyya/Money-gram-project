@@ -1,6 +1,8 @@
 import React from 'react';
 import './style.css';
 
+// Dashboard.js
+
 const Dashboard = ({ user }) => {
   if (!user) {
     return (

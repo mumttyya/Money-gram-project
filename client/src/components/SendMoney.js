@@ -3,6 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import './style.css';
 
+// SendMoney.js
+
 const SendMoney = ({ user }) => {
   const validationSchema = Yup.object({
     recipientPhoneNumber: Yup.string()

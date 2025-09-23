@@ -7,6 +7,7 @@ import Signup from './components/Signup';
 import SendMoney from './components/SendMoney'; // New import
 import TransactionHistory from './components/TransactionHistory'; // New import
 
+
 function App() {
   const [user, setUser] = useState(null);
 
