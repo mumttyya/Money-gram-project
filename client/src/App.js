@@ -4,12 +4,14 @@ import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import SendMoney from './components/SendMoney'; // New import
+import TransactionHistory from './components/TransactionHistory'; // New import
+
 
 function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    
     fetch('/check_session').then((r) => {
       if (r.ok) {
         r.json().then(setUser);
