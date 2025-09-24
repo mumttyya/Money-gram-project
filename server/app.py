@@ -1,12 +1,16 @@
-from flask import Flask, request, session, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
 from models import db, User, Transaction
-from werkzeug.exceptions import NotFound, Unauthorized, UnprocessableEntity
+from werkzeug.exceptions import Unauthorized, UnprocessableEntity
 import bcrypt
 import os
+import jwt
+from datetime import datetime, timedelta
+from functools import wraps
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///moneygram.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
@@ -14,109 +18,135 @@ app.json.compact = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
-CORS(app, supports_credentials=True)
+# ✅ Allow Authorization header in CORS
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"])
 
-@app.before_request
-def check_if_logged_in():
-    open_access_list = [
-        'signup',
-        'login',
-        'check_session'
-    ]
-    if request.endpoint not in open_access_list and request.method != 'OPTIONS':
-        if 'user_id' not in session:
-            raise Unauthorized("You need to log in to access this feature.")
+# ---------------- JWT HELPERS ----------------
+def generate_token(user_id):
+    payload = {
+        "exp": datetime.utcnow() + timedelta(hours=24),
+        "iat": datetime.utcnow(),
+        "sub": user_id
+    }
+    return jwt.encode(payload, app.config['SECRET_KEY'], algorithm="HS256")
 
-@app.route('/users', methods=['POST'])
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Missing or invalid token"}), 401
+
+        token = auth_header.split(" ")[1]
+        try:
+            payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = User.query.get(payload["sub"])
+            if not current_user:
+                return jsonify({"error": "User not found"}), 404
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired. Please log in again."}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
+
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+# ---------------- ROUTES ----------------
+@app.route("/users", methods=["POST"])
 def signup():
     data = request.json
     try:
-        if not data.get('password'):
+        if not data.get("password"):
             raise UnprocessableEntity(description="Password is required.")
 
-        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        hashed_password = bcrypt.hashpw(data["password"].encode("utf-8"), bcrypt.gensalt())
         new_user = User(
-            username=data['username'],
-            phone_number=data['phone_number'],
-            password=hashed_password.decode('utf-8')
+            username=data["username"],
+            phone_number=data["phone_number"],
+            password=hashed_password.decode("utf-8"),
+            balance=1000  # ✅ Give default balance (optional for testing)
         )
         db.session.add(new_user)
         db.session.commit()
-        session['user_id'] = new_user.id
-        return jsonify(new_user.to_dict()), 201
+
+        token = generate_token(new_user.id)
+
+        return jsonify({
+            "user": new_user.to_dict(),
+            "token": token
+        }), 201
     except UnprocessableEntity as e:
         db.session.rollback()
         return jsonify(error=str(e.description)), 422
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        return jsonify(error="An unexpected error occurred. Please try again."), 500
+        return jsonify(error=f"An unexpected error occurred: {str(e)}"), 500
 
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    user = User.query.filter_by(phone_number=data['phone_number']).first()
-    if user and bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
-        session['user_id'] = user.id
-        return jsonify(user.to_dict()), 200
-    else:
-        return jsonify(error="Invalid phone number or password."), 401
+    user = User.query.filter_by(phone_number=data.get("phone_number")).first()
 
-@app.route('/check_session', methods=['GET'])
-def check_session():
-    user_id = session.get('user_id')
-    if user_id:
-        user = User.query.filter_by(id=user_id).first()
-        return jsonify(user.to_dict()), 200
-    else:
-        return jsonify(error="No active session"), 401
+    if user and bcrypt.checkpw(data["password"].encode("utf-8"), user.password.encode("utf-8")):
+        token = generate_token(user.id)
+        return jsonify({
+            "user": user.to_dict(),
+            "token": token
+        }), 200
+    return jsonify(error="Invalid phone number or password."), 401
 
-@app.route('/logout', methods=['POST'])
+@app.route("/check_session", methods=["GET"])
+@token_required
+def check_session(current_user):
+    return jsonify(current_user.to_dict()), 200
+
+@app.route("/logout", methods=["POST"])
 def logout():
-    session.clear()
+    # Stateless, client just discards token
     return jsonify(message="Logged out successfully"), 200
 
-@app.route('/send_money', methods=['POST'])
-def send_money():
+@app.route("/send_money", methods=["POST"])
+@token_required
+def send_money(current_user):
     data = request.json
-    sender_id = session['user_id']
-    sender = User.query.filter_by(id=sender_id).first()
-    recipient = User.query.filter_by(phone_number=data['recipient_phone']).first()
-    amount = float(data['amount'])
-    notes = data.get('notes')
+    recipient = User.query.filter_by(phone_number=data["recipient_phone"]).first()
+    amount = float(data["amount"])
+    notes = data.get("notes")
 
     if not recipient:
         return jsonify(error="Recipient not found."), 404
-    if sender.balance < amount:
-        return jsonify(error="Insufficient balance."), 403
     if amount <= 0:
         return jsonify(error="Amount must be positive."), 422
+    if current_user.balance < amount:
+        return jsonify(error="Insufficient balance."), 403
 
     try:
-        sender.balance -= amount
+        current_user.balance -= amount
         recipient.balance += amount
         transaction = Transaction(
-            sender_id=sender_id,
+            sender_id=current_user.id,
             recipient_id=recipient.id,
             amount=amount,
             notes=notes
         )
         db.session.add(transaction)
         db.session.commit()
-        return jsonify(sender.to_dict()), 200
+        return jsonify(current_user.to_dict()), 200
     except Exception as e:
         db.session.rollback()
         return jsonify(error=f"Transaction failed: {str(e)}"), 500
 
-@app.route('/transactions', methods=['GET'])
-def get_transactions():
-    user_id = session['user_id']
-    sent_transactions = Transaction.query.filter_by(sender_id=user_id).all()
-    received_transactions = Transaction.query.filter_by(recipient_id=user_id).all()
+@app.route("/transactions", methods=["GET"])
+@token_required
+def get_transactions(current_user):
+    sent_transactions = Transaction.query.filter_by(sender_id=current_user.id).all()
+    received_transactions = Transaction.query.filter_by(recipient_id=current_user.id).all()
 
     return jsonify({
-        'sent': [t.to_dict() for t in sent_transactions],
-        'received': [t.to_dict() for t in received_transactions]
+        "sent": [t.to_dict() for t in sent_transactions],
+        "received": [t.to_dict() for t in received_transactions]
     }), 200
 
-if __name__ == '__main__':
+# ---------------- RUN ----------------
+if __name__ == "__main__":
     app.run(port=5555, debug=True)
