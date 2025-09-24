@@ -1,171 +1,122 @@
-import os
-from flask import Flask, request, jsonify, session
-from flask_restful import Api, Resource
-from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt
+from flask import Flask, request, session, jsonify
 from flask_cors import CORS
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-# Import the database object and models
-from models import db, User, Transaction, Contact
+from flask_migrate import Migrate
+from models import db, User, Transaction
+from werkzeug.exceptions import NotFound, Unauthorized, UnprocessableEntity
+import bcrypt
+import os
 
 app = Flask(__name__)
-CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///moneygram.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'a_very_secret_key'
 app.json.compact = False
 
-db.init_app(app)
 migrate = Migrate(app, db)
-api = Api(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
+db.init_app(app)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+CORS(app, supports_credentials=True)
 
-# --- AUTHENTICATION & USER MANAGEMENT ---
-# class Signup(Resource):
-#     def post(self):
-#         data = request.get_json()
-#         try:
-#             new_user = User(
-#                 username=data['username'],
-#                 phone_number=data['phone_number'],
-#             )
-#             new_user.password = data['password']
-#             db.session.add(new_user)
-#             db.session.commit()
-#             return new_user.to_dict(), 201
-#         except Exception as e:
-#             db.session.rollback()
-#             return {'error': str(e)}, 422
+@app.before_request
+def check_if_logged_in():
+    open_access_list = [
+        'signup',
+        'login',
+        'check_session'
+    ]
+    if request.endpoint not in open_access_list and request.method != 'OPTIONS':
+        if 'user_id' not in session:
+            raise Unauthorized("You need to log in to access this feature.")
 
-class Login(Resource):
-    def post(self):
-        data = request.get_json()
-        user = User.query.filter_by(phone_number=data.get('phone_number')).first()
-        if user and user.authenticate(data.get('password')):
-            login_user(user)
-            return user.to_dict(), 200
-        return {'error': 'Invalid phone number or password'}, 401
+@app.route('/users', methods=['POST'])
+def signup():
+    data = request.json
+    try:
+        if not data.get('password'):
+            raise UnprocessableEntity(description="Password is required.")
 
-class Logout(Resource):
-    @login_required
-    def post(self):
-        logout_user()
-        return {'message': 'Logged out successfully'}, 200
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        new_user = User(
+            username=data['username'],
+            phone_number=data['phone_number'],
+            password=hashed_password.decode('utf-8')
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        session['user_id'] = new_user.id
+        return jsonify(new_user.to_dict()), 201
+    except UnprocessableEntity as e:
+        db.session.rollback()
+        return jsonify(error=str(e.description)), 422
+    except Exception:
+        db.session.rollback()
+        return jsonify(error="An unexpected error occurred. Please try again."), 500
 
-class CheckSession(Resource):
-    def get(self):
-        if current_user.is_authenticated:
-            return current_user.to_dict(), 200
-        return {'error': 'Unauthorized'}, 401
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(phone_number=data['phone_number']).first()
+    if user and bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')):
+        session['user_id'] = user.id
+        return jsonify(user.to_dict()), 200
+    else:
+        return jsonify(error="Invalid phone number or password."), 401
 
-class UserResource(Resource):
-    def post(self):
-        data = request.get_json()
-        try:
-            new_user = User(
-                username=data['username'],
-                phone_number=data['phone_number'],
-            )
-            new_user.password = data['password']
-            db.session.add(new_user)
-            db.session.commit()
-            return new_user.to_dict(), 201
-        except Exception as e:
-            db.session.rollback()
-            return {'error': str(e)}, 422
+@app.route('/check_session', methods=['GET'])
+def check_session():
+    user_id = session.get('user_id')
+    if user_id:
+        user = User.query.filter_by(id=user_id).first()
+        return jsonify(user.to_dict()), 200
+    else:
+        return jsonify(error="No active session"), 401
 
-    @login_required
-    def get(self, user_id=None):
-        if user_id:
-            user = User.query.get_or_404(user_id)
-            return user.to_dict(), 200
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify(message="Logged out successfully"), 200
 
-        users = [user.to_dict() for user in User.query.all()]
-        return users, 200
+@app.route('/send_money', methods=['POST'])
+def send_money():
+    data = request.json
+    sender_id = session['user_id']
+    sender = User.query.filter_by(id=sender_id).first()
+    recipient = User.query.filter_by(phone_number=data['recipient_phone']).first()
+    amount = float(data['amount'])
+    notes = data.get('notes')
 
-# --- TRANSACTIONS & CONTACTS ---
-class SendMoney(Resource):
-    @login_required
-    def post(self):
-        data = request.get_json()
-        sender = current_user
-        receiver = User.query.filter_by(phone_number=data.get('recipient_phone')).first()
-        amount = data.get('amount')
-        
-        if not receiver:
-            return {'error': 'Recipient not found'}, 404
-        
-        if sender.balance < amount:
-            return {'error': 'Insufficient balance'}, 422
-        
+    if not recipient:
+        return jsonify(error="Recipient not found."), 404
+    if sender.balance < amount:
+        return jsonify(error="Insufficient balance."), 403
+    if amount <= 0:
+        return jsonify(error="Amount must be positive."), 422
+
+    try:
         sender.balance -= amount
-        receiver.balance += amount
-        
-        new_transaction = Transaction(
+        recipient.balance += amount
+        transaction = Transaction(
+            sender_id=sender_id,
+            recipient_id=recipient.id,
             amount=amount,
-            notes=data.get('notes'),
-            sender=sender,
-            receiver=receiver
+            notes=notes
         )
-        
-        db.session.add(new_transaction)
+        db.session.add(transaction)
         db.session.commit()
-        
-        return new_transaction.to_dict(), 201
+        return jsonify(sender.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify(error=f"Transaction failed: {str(e)}"), 500
 
-class TransactionHistory(Resource):
-    @login_required
-    def get(self):
-        user = current_user
-        sent_history = [t.to_dict() for t in user.sent_transactions]
-        received_history = [t.to_dict() for t in user.received_transactions]
-        
-        return {
-            'sent': sent_history,
-            'received': received_history
-        }, 200
+@app.route('/transactions', methods=['GET'])
+def get_transactions():
+    user_id = session['user_id']
+    sent_transactions = Transaction.query.filter_by(sender_id=user_id).all()
+    received_transactions = Transaction.query.filter_by(recipient_id=user_id).all()
 
-class ContactsResource(Resource):
-    @login_required
-    def post(self):
-        data = request.get_json()
-        user_from = current_user
-        user_to = User.query.filter_by(phone_number=data.get('contact_phone')).first()
-
-        if not user_to:
-            return {'error': 'Contact not found'}, 404
-        
-        new_contact = Contact(
-            user_from=user_from,
-            user_to=user_to,
-            notes=data.get('notes')
-        )
-        
-        db.session.add(new_contact)
-        db.session.commit()
-        return new_contact.to_dict(), 201
-
-    @login_required
-    def get(self):
-        user = current_user
-        contacts = [c.user_to.to_dict() for c in user.contacts_from]
-        return contacts, 200
-
-# --- ROUTE ADDITIONS ---
-# api.add_resource(Signup, '/signup')
-api.add_resource(Login, '/login')
-api.add_resource(Logout, '/logout')
-api.add_resource(CheckSession, '/check_session')
-api.add_resource(UserResource, '/users', '/users/<int:user_id>')
-api.add_resource(SendMoney, '/send_money')
-api.add_resource(TransactionHistory, '/transactions')
-api.add_resource(ContactsResource, '/contacts')
+    return jsonify({
+        'sent': [t.to_dict() for t in sent_transactions],
+        'received': [t.to_dict() for t in received_transactions]
+    }), 200
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
