@@ -1,17 +1,21 @@
-# Import your app and db instances
-from app import app, db
-from models import User, ... # import your models
+#!/usr/bin/env python3
+from app import app
+from models import db, User
 
-# Your seeding logic
-def seed_database():
-    # Delete existing data
-    User.query.delete()
-    # Add your new data here...
-    new_user = User(username='testuser', email='test@example.com')
-    db.session.add(new_user)
-    db.session.commit()
-    print("Database seeded successfully!")
-
-# This is the crucial part
 with app.app_context():
-    seed_database()
+    print("Seeding database...")
+
+    # .Delete existing data to start fresh.
+    User.query.delete()
+
+    # .Create new users.
+    uuser1 = User(username='Karl', phone_number='7123456780')
+    user1.password = 'password123'
+
+    user1 = User(username='Karl', phone_number='7123456780')
+    user2.password = 'password123'
+
+    db.session.add_all([user1, user2])
+    db.session.commit()
+
+    print("Seeding complete!")
