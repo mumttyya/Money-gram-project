@@ -1,76 +1,106 @@
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import './style.css';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = 'http://127.0.0.1:5555';
 
-const Signup = ({ setUser }) => {
+function Signup() {
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const validationSchema = Yup.object({
-    username: Yup.string().min(3, 'Username must be at least 3 characters').required('Required'),
-    phone_number: Yup.string()
-      .matches(/^\d{10}$/, 'Phone number must be exactly 10 digits')
-      .required('Required'),
-    password: Yup.string().min(6, 'Password must be at least 6 characters').required('Required'),
+  const formik = useFormik({
+    initialValues: {
+      username: '',
+      phoneNumber: '',
+      password: '',
+    },
+    validationSchema: Yup.object({
+      username: Yup.string().required('Required'),
+      phoneNumber: Yup.string().required('Required'),
+      password: Yup.string().required('Required'),
+    }),
+    onSubmit: async (values) => {
+      setError(null);
+      try {
+        const response = await fetch(`${API_BASE_URL}/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: values.username,
+            phone_number: values.phoneNumber,
+            password: values.password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // ✅ Store user ID as token
+          localStorage.setItem('moneygram_token', data.user.id);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          navigate('/'); // Redirect to home/dashboard
+        } else {
+          setError(data.error || 'Failed to register.');
+        }
+      } catch (err) {
+        setError('Failed to connect to server.');
+      }
+    },
   });
 
-  const handleSubmit = (values, { setSubmitting }) => {
-    setError(null);
-    fetch(`${API_BASE_URL}/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: values.username,
-        phone_number: values.phone_number,
-        password: values.password,
-      }),
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json().then(user => {
-            setUser(user);
-          });
-        } else {
-          return res.json().then(errorData => {
-            setError(errorData.error || 'Sign up failed.');
-          });
-        }
-      })
-      .catch(() => {
-        setError('Could not connect to the server.');
-      })
-      .finally(() => setSubmitting(false));
-  };
-
   return (
-    <div className="container">
+    <div className="form-container">
       <div className="card">
-        <h2>Create an Account</h2>
-        <Formik
-          initialValues={{ username: '', phone_number: '', password: '' }}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ isSubmitting }) => (
-            <Form className="form-container">
-              <Field type="text" name="username" placeholder="Username" />
-              <ErrorMessage name="username" component="div" className="error-message" />
-              <Field type="text" name="phone_number" placeholder="Phone Number" />
-              <ErrorMessage name="phone_number" component="div" className="error-message" />
-              <Field type="password" name="password" placeholder="Password" />
-              <ErrorMessage name="password" component="div" className="error-message" />
-              {error && <div className="error-message">{error}</div>}
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing up...' : 'Sign Up'}
-              </button>
-            </Form>
-          )}
-        </Formik>
+        <h2 className="form-title">Sign Up</h2>
+        <form onSubmit={formik.handleSubmit} className="form">
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.username}
+              className="input"
+            />
+          </div>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Phone Number"
+              name="phoneNumber"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.phoneNumber}
+              className="input"
+            />
+          </div>
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Password"
+              name="password"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.password}
+              className="input"
+            />
+          </div>
+          {error && <div className="server-error">{error}</div>}
+          <button type="submit" className="button primary-button">Sign Up</button>
+          <div className="text-center mt-4">
+            <Link to="/login" className="text-button">
+              Already have an account? Log In
+            </Link>
+          </div>
+        </form>
       </div>
     </div>
   );
-};
+}
 
 export default Signup;

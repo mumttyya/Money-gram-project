@@ -1,41 +1,154 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './style.css';
+import { useState, useRef } from "react";
 
-const Dashboard = ({ user }) => {
-  if (!user) {
-    return null; // The App.js handles navigation for unauthenticated users
-  }
+function Dashboard({ user }) {
+  const [balance, setBalance] = useState(user.balance);
+  const [transactions, setTransactions] = useState([]);
+  const [alert, setAlert] = useState({ type: "", message: "" });
+
+  const sendMoneyRef = useRef(null);
+  const airtimeRef = useRef(null);
+  const payRef = useRef(null);
+  const withdrawRef = useRef(null);
+  const transactionRef = useRef(null);
+
+  const handleTransaction = (type, amount) => {
+    if (amount <= 0) {
+      setAlert({ type: "error", message: "Amount must be greater than 0" });
+      return;
+    }
+    if (amount > balance) {
+      setAlert({ type: "error", message: "Insufficient balance" });
+      return;
+    }
+
+    const newBalance = balance - amount;
+    setBalance(newBalance);
+
+    const newTransaction = {
+      id: transactions.length + 1,
+      type,
+      amount,
+      date: new Date().toLocaleString(),
+    };
+    setTransactions([newTransaction, ...transactions]);
+    setAlert({ type: "success", message: `${type} successful!` });
+
+    setTimeout(() => setAlert({ type: "", message: "" }), 3000);
+  };
+
+  const scrollToSection = (ref) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleCheckBalance = () => {
+    setAlert({ type: "success", message: `Your current balance is $${balance.toFixed(2)}` });
+    setTimeout(() => setAlert({ type: "", message: "" }), 3000);
+  };
 
   return (
-    <div className="container">
-      <div className="card">
-        <div className="dashboard-welcome">
-          <h2>Welcome, {user.username}!</h2>
+    <div className="dashboard-container">
+      <h1 className="dashboard-welcome">Welcome, {user.username}</h1>
+
+      {alert.message && (
+        <div className={`alert ${alert.type === "success" ? "alert-success" : "alert-error"}`}>
+          {alert.message}
         </div>
-        <div className="dashboard-balance-card">
-          <div className="dashboard-balance-label">Your Balance</div>
-          <div className="dashboard-balance">
-            ${user.balance ? user.balance.toFixed(2) : '0.00'}
+      )}
+
+      <p className="dashboard-balance">Balance: ${balance.toFixed(2)}</p>
+
+      <div className="feature-grid">
+        <div className="feature-card" onClick={() => scrollToSection(sendMoneyRef)}>💸<p>Send Money</p></div>
+        <div className="feature-card" onClick={() => scrollToSection(airtimeRef)}>📱<p>Buy Airtime</p></div>
+        <div className="feature-card" onClick={() => scrollToSection(payRef)}>💳<p>Pay</p></div>
+        <div className="feature-card" onClick={() => scrollToSection(withdrawRef)}>🏧<p>Withdraw Cash</p></div>
+        <div className="feature-card" onClick={handleCheckBalance}>💰<p>Check Balance</p></div>
+        <div className="feature-card" onClick={() => scrollToSection(transactionRef)}>📜<p>Transaction History</p></div>
+      </div>
+
+      {/* --- Send Money --- */}
+      <div ref={sendMoneyRef} className="send-money-form">
+        <h3>Send Money</h3>
+        <input type="text" placeholder="Recipient Phone" />
+        <input type="number" placeholder="Amount" id="sendMoneyAmount" />
+        <button
+          className="button"
+          onClick={() => {
+            const amount = parseFloat(document.getElementById("sendMoneyAmount").value);
+            handleTransaction("Send Money", amount);
+          }}
+        >
+          Send
+        </button>
+      </div>
+
+      {/* --- Buy Airtime --- */}
+      <div ref={airtimeRef} className="airtime-demo">
+        <h3>Buy Airtime</h3>
+        <input type="text" placeholder="Phone Number" />
+        <input type="number" placeholder="Amount" id="airtimeAmount" />
+        <button
+          className="button"
+          onClick={() => {
+            const amount = parseFloat(document.getElementById("airtimeAmount").value);
+            handleTransaction("Buy Airtime", amount);
+          }}
+        >
+          Buy
+        </button>
+      </div>
+
+      {/* --- Pay --- */}
+      <div ref={payRef} className="airtime-demo">
+        <h3>Pay</h3>
+        <input type="text" placeholder="Recipient / Merchant" />
+        <input type="number" placeholder="Amount" id="payAmount" />
+        <button
+          className="button"
+          onClick={() => {
+            const amount = parseFloat(document.getElementById("payAmount").value);
+            handleTransaction("Pay", amount);
+          }}
+        >
+          Pay
+        </button>
+      </div>
+
+      {/* --- Withdraw Cash --- */}
+      <div ref={withdrawRef} className="send-money-form">
+        <h3>Withdraw Cash</h3>
+        <input type="number" placeholder="Amount" id="withdrawAmount" />
+        <button
+          className="button"
+          onClick={() => {
+            const amount = parseFloat(document.getElementById("withdrawAmount").value);
+            handleTransaction("Withdraw Cash", amount);
+          }}
+        >
+          Withdraw
+        </button>
+      </div>
+
+      {/* --- Transaction History --- */}
+      <div ref={transactionRef} className="transaction-history-demo">
+        <h3>Transaction History</h3>
+        {transactions.length === 0 && <p>No transactions yet.</p>}
+        {transactions.map((t) => (
+          <div
+            key={t.id}
+            className={`transaction-item ${
+              t.type === "Send Money" || t.type === "Pay" || t.type === "Buy Airtime" || t.type === "Withdraw Cash"
+                ? "sent-item"
+                : "received-item"
+            }`}
+          >
+            <p><strong>{t.type}:</strong> ${t.amount.toFixed(2)}</p>
+            <p>{t.date}</p>
           </div>
-        </div>
-        <div className="dashboard-actions">
-          <Link to="/send" className="action-button">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-            </svg>
-            <span>Send Money</span>
-          </Link>
-          <Link to="/history" className="action-button">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-            <span>History</span>
-          </Link>
-        </div>
+        ))}
       </div>
     </div>
   );
-};
+}
 
 export default Dashboard;
