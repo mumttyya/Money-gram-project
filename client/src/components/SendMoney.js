@@ -1,84 +1,77 @@
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import './style.css';
 
 const API_BASE_URL = 'http://127.0.0.1:5555';
 
-const SendMoney = ({ user, onTransaction }) => {
+function SendMoney({ onTransaction }) {
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const validationSchema = Yup.object({
-    recipientPhoneNumber: Yup.string()
-      .matches(/^\d{10}$/, 'Recipient phone number must be 10 digits')
-      .required('Required'),
-    amount: Yup.number()
-      .typeError('Amount must be a number')
-      .positive('Amount must be positive')
-      .min(0.01, 'Amount must be greater than zero')
-      .required('Required'),
-    notes: Yup.string().optional()
-  });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleSubmit = (values, { setSubmitting, resetForm }) => {
-    setMessage('');
-    fetch(`${API_BASE_URL}/send_money`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        recipient_phone: values.recipientPhoneNumber,
-        amount: parseFloat(values.amount),
-        notes: values.notes,
-      }),
-    })
-      .then(res => {
-        if (res.ok) {
-          setIsSuccess(true);
-          setMessage('Transaction successful!');
-          res.json().then(data => onTransaction(user.balance - data.amount));
-          resetForm();
-        } else {
-          res.json().then(err => {
-            setIsSuccess(false);
-            setMessage(err.error || 'Transaction failed. Please try again.');
-          });
-        }
-      })
-      .catch(() => {
+    const userId = localStorage.getItem('moneygram_token');
+    if (!userId) {
+      setMessage('You must be logged in.');
+      setIsSuccess(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/send_money`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-ID': userId,
+        },
+        body: JSON.stringify({
+          recipient_phone: recipientPhone,
+          amount,
+          notes: '',
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessage('Money sent successfully!');
+        setIsSuccess(true);
+        setRecipientPhone('');
+        setAmount('');
+        onTransaction(data.sender_balance);
+      } else {
+        setMessage(data.error || 'Transaction failed.');
         setIsSuccess(false);
-        setMessage('A network error occurred. Please try again.');
-      })
-      .finally(() => setSubmitting(false));
+      }
+    } catch {
+      setMessage('Failed to connect to server.');
+      setIsSuccess(false);
+    }
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <h2>Send Money</h2>
-        <Formik
-          initialValues={{ recipientPhoneNumber: '', amount: '', notes: '' }}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ isSubmitting }) => (
-            <Form className="form-container">
-              <Field type="text" name="recipientPhoneNumber" placeholder="Recipient Phone Number" />
-              <ErrorMessage name="recipientPhoneNumber" component="div" className="error-message" />
-              <Field type="number" name="amount" placeholder="Amount" step="0.01" />
-              <ErrorMessage name="amount" component="div" className="error-message" />
-              <Field type="text" name="notes" placeholder="Notes (Optional)" />
-              <ErrorMessage name="notes" component="div" className="error-message" />
-              {message && <div className={isSuccess ? 'success-message' : 'error-message'}>{message}</div>}
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending...' : 'Send'}
-              </button>
-            </Form>
-          )}
-        </Formik>
-      </div>
+    <div className="send-money-form">
+      <h3>Send Money</h3>
+      {message && <div className={isSuccess ? 'alert-success' : 'alert-error'}>{message}</div>}
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Recipient Phone"
+          value={recipientPhone}
+          onChange={(e) => setRecipientPhone(e.target.value)}
+          required
+        />
+        <input
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+        />
+        <button type="submit" className="button primary-button">Send</button>
+      </form>
     </div>
   );
-};
+}
 
 export default SendMoney;

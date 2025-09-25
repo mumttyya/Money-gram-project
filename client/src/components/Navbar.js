@@ -1,36 +1,24 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import './style.css';
+import { Link } from 'react-router-dom';
 
-const API_BASE_URL = 'http://127.0.0.1:5555';
-
-const Navbar = ({ user, setUser }) => {
-  const handleLogout = () => {
-    fetch(`${API_BASE_URL}/logout`, { method: 'POST' }).then(() => {
-      setUser(null);
-    });
-  };
-
+function Navbar({ user, onLogout }) {
   return (
     <nav className="navbar">
-      <h1>Moneygram</h1>
-      <div className="navbar-links">
+      <div className="navbar-left">
+        <Link to="/" className="navbar-brand">Moneygram</Link>
+      </div>
+      <div className="navbar-right">
         {user ? (
-          <>
-            <NavLink to="/dashboard">Dashboard</NavLink>
-            <NavLink to="/send">Send Money</NavLink>
-            <NavLink to="/history">History</NavLink>
-            <button onClick={handleLogout}>Logout</button>
-          </>
+          <button onClick={onLogout} className="button logout-button">Log Out</button>
         ) : (
           <>
-            <NavLink to="/login">Login</NavLink>
-            <NavLink to="/signup">Signup</NavLink>
+            <Link to="/login" className="button nav-button">Log In</Link>
+            <Link to="/signup" className="button nav-button">Sign Up</Link>
           </>
         )}
       </div>
     </nav>
   );
-};
+}
 
 export default Navbar;
