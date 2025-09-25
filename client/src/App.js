@@ -4,48 +4,63 @@ import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import SendMoney from './components/SendMoney';
-import TransactionHistory from './components/TransactionHistory';
-
-const API_BASE_URL = 'http://127.0.0.1:5555';
+import Footer from './components/Footer';
+import './App.css';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
 
-  useEffect(() => {
-    // Check for a logged-in user session on component mount
-    fetch(`${API_BASE_URL}/check_session`).then((r) => {
-      setLoading(false);
-      if (r.ok) {
-        r.json().then(setUser);
-      }
-    });
-  }, []);
-
-  const handleTransaction = (newBalance) => {
-    setUser(currentUser => ({ ...currentUser, balance: newBalance }));
+  // Handle login and save user info to localStorage
+  const handleLogin = (loggedInUser, token) => {
+    setUser(loggedInUser);
+    localStorage.setItem('user', JSON.stringify(loggedInUser));
+    localStorage.setItem('moneygram_token', token);
   };
 
-  if (loading) {
-    return <h1>Loading...</h1>;
-  }
+  // Update balance after transactions
+  const handleTransaction = (newBalance) => {
+    if (!user) return;
+    const updatedUser = { ...user, balance: newBalance };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('moneygram_token');
+  };
 
   return (
     <BrowserRouter>
+      <Navbar user={user} onLogout={handleLogout} />
       <div className="app-container">
-        <Navbar user={user} setUser={setUser} />
-        <main className="content-container">
-          <Routes>
-            <Route path="/" element={user ? <Dashboard user={user} setUser={setUser}/> : <Navigate to="/login" />} />
-            <Route path="/dashboard" element={user ? <Dashboard user={user} setUser={setUser}/> : <Navigate to="/login" />} />
-            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} />} />
-            <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup setUser={setUser} />} />
-            <Route path="/send" element={user ? <SendMoney user={user} onTransaction={handleTransaction} /> : <Navigate to="/login" />} />
-            <Route path="/history" element={user ? <TransactionHistory user={user} /> : <Navigate to="/login" />} />
-          </Routes>
-        </main>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              user ? (
+                <Dashboard user={user} onTransaction={handleTransaction} />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />}
+          />
+          <Route
+            path="/signup"
+            element={user ? <Navigate to="/" /> : <Signup onLogin={handleLogin} />}
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </BrowserRouter>
   );
 }
