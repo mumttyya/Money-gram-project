@@ -7,11 +7,6 @@ import bcrypt
 import os
 
 app = Flask(__name__)
-
-
-# Load config from environment variables for Render deployment
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
 app.config['SECRET_KEY'] = 'fixed-secret-key-for-testing'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///moneygram.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
