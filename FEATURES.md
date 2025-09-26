@@ -27,15 +27,15 @@
 - Withdrawal amount validation
 - Transaction logging
 
-### 💰 Check Balance
+### Check Balance
 - Instant balance display
 - Real-time updates after transactions
 - Balance shown in USD format
 - Success message confirmation
 
-## 👥 User Management
+## User Management
 
-### 🔐 Authentication
+###  Authentication
 - Secure user registration
 - Phone number-based login
 - Password protection
