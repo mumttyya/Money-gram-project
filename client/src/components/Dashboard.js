@@ -121,7 +121,6 @@ function Dashboard({ user, onTransaction }) {
         <div className="feature-card" onClick={() => scrollToSection(transactionRef)}>📜<p>Transaction History</p></div>
       </div>
 
-      {/* --- Send Money --- */}
       <div ref={sendMoneyRef} className="send-money-form">
         <h3>Send Money</h3>
         <input type="text" placeholder="Recipient Phone" id="recipientPhone" />
@@ -138,7 +137,6 @@ function Dashboard({ user, onTransaction }) {
         </button>
       </div>
 
-      {/* --- Buy Airtime --- */}
       <div ref={airtimeRef} className="airtime-demo">
         <h3>Buy Airtime</h3>
         <input type="text" placeholder="Phone Number" />
@@ -154,7 +152,6 @@ function Dashboard({ user, onTransaction }) {
         </button>
       </div>
 
-      {/* --- Pay --- */}
       <div ref={payRef} className="airtime-demo">
         <h3>Pay</h3>
         <input type="text" placeholder="Recipient / Merchant" />
@@ -170,7 +167,7 @@ function Dashboard({ user, onTransaction }) {
         </button>
       </div>
 
-      {/* --- Withdraw Cash --- */}
+      
       <div ref={withdrawRef} className="send-money-form">
         <h3>Withdraw Cash</h3>
         <input type="number" placeholder="Amount" id="withdrawAmount" />
@@ -185,7 +182,7 @@ function Dashboard({ user, onTransaction }) {
         </button>
       </div>
 
-      {/* --- Transaction History --- */}
+     
       <div ref={transactionRef} className="transaction-history-demo">
         <h3>Transaction History</h3>
         {transactions.length === 0 && <p>No transactions yet.</p>}
