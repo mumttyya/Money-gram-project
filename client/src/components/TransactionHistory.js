@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
+import Notification from './Notification';
 import './style.css';
 
 function TransactionHistory() {
   const [transactions, setTransactions] = useState({ sent: [], received: [] });
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState({ message: '', type: '' });
 
   const fetchTransactions = async () => {
     try {
@@ -33,13 +35,13 @@ function TransactionHistory() {
       });
 
       if (response.ok) {
-        alert('Transaction deleted successfully!');
+        setNotification({ message: 'Transaction deleted successfully!', type: 'success' });
         fetchTransactions();
       } else {
-        alert('Failed to delete transaction');
+        setNotification({ message: 'Failed to delete transaction', type: 'error' });
       }
     } catch (err) {
-      alert('Failed to connect to server');
+      setNotification({ message: 'Failed to connect to server', type: 'error' });
     }
   };
 
@@ -53,6 +55,13 @@ function TransactionHistory() {
 
   return (
     <div className="dashboard-container">
+      {notification.message && (
+        <Notification 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification({ message: '', type: '' })} 
+        />
+      )}
       <h2 className="dashboard-welcome">Transaction History</h2>
       
       <div className="transaction-history-demo">

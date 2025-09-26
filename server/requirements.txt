@@ -1,9 +1,2 @@
-Flask
-Flask-SQLAlchemy
-Flask-Migrate
-Flask-CORS
-gunicorn
-Flask-RESTful
-Flask-Bcrypt
-Flask-Login
-bcrypt
+Flask==2.3.3
+Flask-CORS==4.0.0

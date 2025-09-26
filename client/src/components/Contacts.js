@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { API_BASE_URL } from '../config';
+import Notification from './Notification';
 import './style.css';
 
 function Contacts() {
   const [contacts, setContacts] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [notification, setNotification] = useState({ message: '', type: '' });
 
   const formik = useFormik({
     initialValues: {
@@ -42,13 +44,16 @@ function Contacts() {
         
         if (response.ok) {
           setSuccess('Contact added successfully!');
+          setNotification({ message: `Contact ${values.nickname} added successfully!`, type: 'success' });
           resetForm();
           fetchContacts();
         } else {
           setError(data.error || 'Failed to add contact');
+          setNotification({ message: data.error || 'Failed to add contact', type: 'error' });
         }
       } catch (err) {
         setError('Failed to connect to server');
+        setNotification({ message: 'Failed to connect to server', type: 'error' });
       }
     }
   });
@@ -79,12 +84,15 @@ function Contacts() {
 
       if (response.ok) {
         setSuccess('Contact deleted successfully!');
+        setNotification({ message: 'Contact deleted successfully!', type: 'success' });
         fetchContacts();
       } else {
         setError('Failed to delete contact');
+        setNotification({ message: 'Failed to delete contact', type: 'error' });
       }
     } catch (err) {
       setError('Failed to connect to server');
+      setNotification({ message: 'Failed to connect to server', type: 'error' });
     }
   };
 
@@ -94,6 +102,13 @@ function Contacts() {
 
   return (
     <div className="dashboard-container">
+      {notification.message && (
+        <Notification 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification({ message: '', type: '' })} 
+        />
+      )}
       <h2 className="dashboard-welcome">My Contacts</h2>
       
       <div className="send-money-form">

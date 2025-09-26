@@ -7,7 +7,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Simple file-based storage
 USERS_FILE = 'users.json'
 TRANSACTIONS_FILE = 'transactions.json'
 ACCOUNTS_FILE = 'accounts.json'
@@ -103,7 +102,6 @@ def create_transaction():
     if amount > user['balance']:
         return jsonify(error="Insufficient balance"), 400
     
-
     user['balance'] -= amount
     save_data(USERS_FILE, users)
     
@@ -345,7 +343,31 @@ def delete_contact(contact_id):
     save_data(CONTACTS_FILE, contacts)
     return jsonify(message="Contact deleted"), 200
 
-
+@app.route("/add_money", methods=["POST"])
+def add_money():
+    user_id = request.headers.get("X-User-ID")
+    if not user_id:
+        return jsonify(error="Missing X-User-ID header"), 401
+    
+    users = load_data(USERS_FILE)
+    user = next((u for u in users if str(u['id']) == user_id), None)
+    
+    if not user:
+        return jsonify(error="User not found"), 404
+    
+    data = request.json
+    amount = float(data.get("amount", 0))
+    
+    if amount <= 0:
+        return jsonify(error="Amount must be greater than 0"), 400
+    
+    user['balance'] += amount
+    save_data(USERS_FILE, users)
+    
+    return jsonify({
+        'message': f"${amount} added successfully!",
+        'new_balance': user['balance']
+    }), 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { API_BASE_URL } from '../config';
+import Notification from './Notification';
 
 function Dashboard({ user, onTransaction }) {
   const [balance, setBalance] = useState(user.balance);
   const [transactions, setTransactions] = useState([]);
   const [alert, setAlert] = useState({ type: "", message: "" });
+  const [notification, setNotification] = useState({ message: '', type: '', context: '' });
 
   const sendMoneyRef = useRef(null);
   const airtimeRef = useRef(null);
@@ -52,11 +54,30 @@ function Dashboard({ user, onTransaction }) {
         };
         setTransactions([newTransaction, ...transactions]);
         setAlert({ type: "success", message: `Transaction completed successfully!` });
+        const context = type === 'Send Money' ? 'sendMoney' : type === 'Buy Airtime' ? 'airtime' : type === 'Pay' ? 'pay' : 'withdraw';
+        setNotification({ message: `${type} of $${amount.toFixed(2)} completed successfully!`, type: 'success', context });
+        
+        // Clear input fields
+        setTimeout(() => {
+          if (type === 'Send Money') {
+            document.getElementById('recipientPhone').value = '';
+            document.getElementById('sendMoneyAmount').value = '';
+          } else if (type === 'Buy Airtime') {
+            document.getElementById('airtimeAmount').value = '';
+          } else if (type === 'Pay') {
+            document.getElementById('payAmount').value = '';
+          } else if (type === 'Withdraw Cash') {
+            document.getElementById('withdrawAmount').value = '';
+          }
+        }, 100);
       } else {
         setAlert({ type: "error", message: data.error || 'Transaction failed' });
+        const context = type === 'Send Money' ? 'sendMoney' : type === 'Buy Airtime' ? 'airtime' : type === 'Pay' ? 'pay' : 'withdraw';
+        setNotification({ message: data.error || 'Transaction failed', type: 'error', context });
       }
     } catch (err) {
       setAlert({ type: "error", message: 'Failed to connect to server' });
+      setNotification({ message: 'Failed to connect to server', type: 'error', context: 'general' });
     }
 
     setTimeout(() => setAlert({ type: "", message: "" }), 3000);
@@ -97,11 +118,19 @@ function Dashboard({ user, onTransaction }) {
 
   const handleCheckBalance = () => {
     setAlert({ type: "success", message: `Your current balance is $${balance.toFixed(2)}` });
+    setNotification({ message: `Your current balance is $${balance.toFixed(2)}`, type: 'success', context: 'balance' });
     setTimeout(() => setAlert({ type: "", message: "" }), 3000);
   };
 
   return (
     <div className="dashboard-container">
+      {notification.message && notification.context === 'balance' && (
+        <Notification 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification({ message: '', type: '', context: '' })} 
+        />
+      )}
       <h1 className="dashboard-welcome">Welcome, {user.username}</h1>
 
       {alert.message && (
@@ -123,6 +152,13 @@ function Dashboard({ user, onTransaction }) {
 
       <div ref={sendMoneyRef} className="send-money-form">
         <h3>Send Money</h3>
+        {notification.message && notification.context === 'sendMoney' && (
+          <Notification 
+            message={notification.message} 
+            type={notification.type} 
+            onClose={() => setNotification({ message: '', type: '', context: '' })} 
+          />
+        )}
         <input type="text" placeholder="Recipient Phone" id="recipientPhone" />
         <input type="number" placeholder="Amount" id="sendMoneyAmount" />
         <button
@@ -139,6 +175,13 @@ function Dashboard({ user, onTransaction }) {
 
       <div ref={airtimeRef} className="airtime-demo">
         <h3>Buy Airtime</h3>
+        {notification.message && notification.context === 'airtime' && (
+          <Notification 
+            message={notification.message} 
+            type={notification.type} 
+            onClose={() => setNotification({ message: '', type: '', context: '' })} 
+          />
+        )}
         <input type="text" placeholder="Phone Number" />
         <input type="number" placeholder="Amount" id="airtimeAmount" />
         <button
@@ -154,6 +197,13 @@ function Dashboard({ user, onTransaction }) {
 
       <div ref={payRef} className="airtime-demo">
         <h3>Pay</h3>
+        {notification.message && notification.context === 'pay' && (
+          <Notification 
+            message={notification.message} 
+            type={notification.type} 
+            onClose={() => setNotification({ message: '', type: '', context: '' })} 
+          />
+        )}
         <input type="text" placeholder="Recipient / Merchant" />
         <input type="number" placeholder="Amount" id="payAmount" />
         <button
@@ -170,6 +220,13 @@ function Dashboard({ user, onTransaction }) {
       
       <div ref={withdrawRef} className="send-money-form">
         <h3>Withdraw Cash</h3>
+        {notification.message && notification.context === 'withdraw' && (
+          <Notification 
+            message={notification.message} 
+            type={notification.type} 
+            onClose={() => setNotification({ message: '', type: '', context: '' })} 
+          />
+        )}
         <input type="number" placeholder="Amount" id="withdrawAmount" />
         <button
           className="button"

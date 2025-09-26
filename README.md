@@ -1,4 +1,4 @@
-# M-Pesa Money Transfer Application
+#  Moneygram Application
 
 A full-stack web application built with React and Flask that simulates M-Pesa mobile money transfer functionality.
 
