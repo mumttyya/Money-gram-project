@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { API_BASE_URL } from '../config';
 
-function Dashboard({ user }) {
+function Dashboard({ user, onTransaction }) {
   const [balance, setBalance] = useState(user.balance);
   const [transactions, setTransactions] = useState([]);
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -11,7 +12,7 @@ function Dashboard({ user }) {
   const withdrawRef = useRef(null);
   const transactionRef = useRef(null);
 
-  const handleTransaction = (type, amount) => {
+  const handleTransaction = async (type, amount, recipient = 'demo') => {
     if (amount <= 0) {
       setAlert({ type: "error", message: "Amount must be greater than 0" });
       return;
@@ -21,20 +22,74 @@ function Dashboard({ user }) {
       return;
     }
 
-    const newBalance = balance - amount;
-    setBalance(newBalance);
+    try {
+      const token = localStorage.getItem('moneygram_token');
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-ID': token
+        },
+        body: JSON.stringify({
+          amount: amount,
+          recipient_phone: recipient,
+          transaction_type: type.toLowerCase().replace(' ', '_'),
+          notes: type
+        })
+      });
 
-    const newTransaction = {
-      id: transactions.length + 1,
-      type,
-      amount,
-      date: new Date().toLocaleString(),
-    };
-    setTransactions([newTransaction, ...transactions]);
-    setAlert({ type: "success", message: `${type} successful!` });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBalance(data.sender_balance);
+        onTransaction(data.sender_balance);
+        
+        const newTransaction = {
+          id: data.transaction.id,
+          type,
+          amount,
+          date: new Date(data.transaction.created_at).toLocaleString(),
+        };
+        setTransactions([newTransaction, ...transactions]);
+        setAlert({ type: "success", message: `Transaction completed successfully!` });
+      } else {
+        setAlert({ type: "error", message: data.error || 'Transaction failed' });
+      }
+    } catch (err) {
+      setAlert({ type: "error", message: 'Failed to connect to server' });
+    }
 
     setTimeout(() => setAlert({ type: "", message: "" }), 3000);
   };
+
+  const fetchTransactions = async () => {
+    try {
+      const token = localStorage.getItem('moneygram_token');
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
+        method: 'GET',
+        headers: {
+          'X-User-ID': token
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const allTransactions = [...data.sent, ...data.received].map((t, index) => ({
+          id: index + 1,
+          type: t.notes || 'Transaction',
+          amount: t.amount,
+          date: new Date(t.created_at || Date.now()).toLocaleString()
+        }));
+        setTransactions(allTransactions);
+      }
+    } catch (err) {
+      console.error('Failed to fetch transactions:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const scrollToSection = (ref) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,13 +124,14 @@ function Dashboard({ user }) {
       {/* --- Send Money --- */}
       <div ref={sendMoneyRef} className="send-money-form">
         <h3>Send Money</h3>
-        <input type="text" placeholder="Recipient Phone" />
+        <input type="text" placeholder="Recipient Phone" id="recipientPhone" />
         <input type="number" placeholder="Amount" id="sendMoneyAmount" />
         <button
           className="button"
           onClick={() => {
             const amount = parseFloat(document.getElementById("sendMoneyAmount").value);
-            handleTransaction("Send Money", amount);
+            const recipient = document.getElementById("recipientPhone").value || 'demo';
+            handleTransaction("Send Money", amount, recipient);
           }}
         >
           Send

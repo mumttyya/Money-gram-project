@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_BASE_URL = 'http://127.0.0.1:5555';
+const API_BASE_URL = 'http://127.0.0.1:5000'; // Flask backend is on port 5000
 
 function SendMoney({ onTransaction }) {
   const [recipientPhone, setRecipientPhone] = useState('');
@@ -23,11 +23,11 @@ function SendMoney({ onTransaction }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': userId,
+          'X-User-ID': userId, // custom header for backend
         },
         body: JSON.stringify({
           recipient_phone: recipientPhone,
-          amount,
+          amount: parseFloat(amount), // ensure number
           notes: '',
         }),
       });
@@ -38,12 +38,15 @@ function SendMoney({ onTransaction }) {
         setIsSuccess(true);
         setRecipientPhone('');
         setAmount('');
-        onTransaction(data.sender_balance);
+        if (onTransaction) {
+          onTransaction(data.sender_balance);
+        }
       } else {
         setMessage(data.error || 'Transaction failed.');
         setIsSuccess(false);
       }
-    } catch {
+    } catch (err) {
+      console.error('Send money error:', err);
       setMessage('Failed to connect to server.');
       setIsSuccess(false);
     }
@@ -52,7 +55,11 @@ function SendMoney({ onTransaction }) {
   return (
     <div className="send-money-form">
       <h3>Send Money</h3>
-      {message && <div className={isSuccess ? 'alert-success' : 'alert-error'}>{message}</div>}
+      {message && (
+        <div className={isSuccess ? 'alert-success' : 'alert-error'}>
+          {message}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <input
           type="text"

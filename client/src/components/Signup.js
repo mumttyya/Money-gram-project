@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
+import './style.css';
 
-const API_BASE_URL = 'http://127.0.0.1:5555';
-
-function Signup() {
+function Signup({ onLogin }) {
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -30,7 +29,7 @@ function Signup() {
           },
           body: JSON.stringify({
             username: values.username,
-            phone_number: values.phoneNumber,
+            phone_number: values.phoneNumber, // match Flask model
             password: values.password,
           }),
         });
@@ -38,15 +37,12 @@ function Signup() {
         const data = await response.json();
 
         if (response.ok) {
-          // ✅ Store user ID as token
-          localStorage.setItem('moneygram_token', data.user.id);
-          localStorage.setItem('user', JSON.stringify(data.user));
-
-          navigate('/'); // Redirect to home/dashboard
+          onLogin(data.user, data.user.id);
         } else {
           setError(data.error || 'Failed to register.');
         }
       } catch (err) {
+        console.error("Signup error:", err);
         setError('Failed to connect to server.');
       }
     },

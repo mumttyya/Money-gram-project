@@ -1,26 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 import re
 import os
+from datetime import datetime
 
 db = SQLAlchemy()
 
-class User(db.Model, SerializerMixin):
-    _tablename_ = 'users'
+class User(db.Model):
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    phone_number = db.Column(db.String(10), unique=True, nullable=False)
+    phone_number = db.Column(db.String(15), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     balance = db.Column(db.Float, default=0.00)
 
-    # relationships
     sent_transactions = db.relationship('Transaction', foreign_keys='Transaction.sender_id', backref='sender', lazy=True)
     received_transactions = db.relationship('Transaction', foreign_keys='Transaction.recipient_id', backref='recipient', lazy=True)
-
-    # serialization
-    serialize_rules = ('-sent_transactions.sender', '-received_transactions.recipient', '-password')
 
     @validates('phone_number')
     def validate_phone_number(self, key, phone_number):
@@ -36,7 +32,7 @@ class User(db.Model, SerializerMixin):
             'balance': self.balance
         }
 
-class Transaction(db.Model, SerializerMixin):
+class Transaction(db.Model):
     __tablename__ = 'transactions'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -44,10 +40,7 @@ class Transaction(db.Model, SerializerMixin):
     recipient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     notes = db.Column(db.String(255))
-    timestamp = db.Column(db.DateTime, server_default=db.func.now())
-
-    # serialization
-    serialize_rules = ('-sender.sent_transactions', '-recipient.received_transactions')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         return {
@@ -56,5 +49,5 @@ class Transaction(db.Model, SerializerMixin):
             'recipient_id': self.recipient_id,
             'amount': self.amount,
             'notes': self.notes,
-            'timestamp': self.timestamp
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

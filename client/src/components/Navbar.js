@@ -9,7 +9,13 @@ function Navbar({ user, onLogout }) {
       </div>
       <div className="navbar-right">
         {user ? (
-          <button onClick={onLogout} className="button logout-button">Log Out</button>
+          <>
+            <Link to="/" className="button">Dashboard</Link>
+            <Link to="/contacts" className="button">Contacts</Link>
+            <Link to="/accounts" className="button">Accounts</Link>
+            <Link to="/transactions" className="button">History</Link>
+            <button onClick={onLogout} className="button logout-button">Logout</button>
+          </>
         ) : (
           <>
             <Link to="/login" className="button nav-button">Log In</Link>

@@ -4,6 +4,9 @@ import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import Contacts from './components/Contacts';
+import Accounts from './components/Accounts';
+import TransactionHistory from './components/TransactionHistory';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -54,6 +57,18 @@ function App() {
           <Route
             path="/signup"
             element={user ? <Navigate to="/" /> : <Signup onLogin={handleLogin} />}
+          />
+          <Route
+            path="/contacts"
+            element={user ? <Contacts /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/accounts"
+            element={user ? <Accounts /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/transactions"
+            element={user ? <TransactionHistory /> : <Navigate to="/login" />}
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

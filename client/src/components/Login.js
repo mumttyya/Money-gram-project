@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = 'http://127.0.0.1:5555';
+import { API_BASE_URL } from '../config';
+import './style.css';
 
 function Login({ onLogin }) {
   const [error, setError] = useState(null);

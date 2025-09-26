@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "username": "test",
+    "phone_number": "1234567890",
+    "password": "test123",
+    "balance": 14935.0
+  },
+  {
+    "id": 2,
+    "username": "mumtaza Mohamed",
+    "phone_number": "0729889585",
+    "password": "000000",
+    "balance": 14830.0
+  },
+  {
+    "id": 3,
+    "username": "testuser2",
+    "phone_number": "9876543210",
+    "password": "test123",
+    "balance": 15000
+  },
+  {
+    "id": 4,
+    "username": "mumtaza Mohamed",
+    "phone_number": "0712345678",
+    "password": "000000",
+    "balance": 15000
+  },
+  {
+    "id": 5,
+    "username": "mumtaza Mohamed",
+    "phone_number": "0112345678",
+    "password": "000000",
+    "balance": 15000
+  },
+  {
+    "id": 6,
+    "username": "Karl ",
+    "phone_number": "0112345675",
+    "password": "000000",
+    "balance": 15000
+  }
+]
