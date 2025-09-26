@@ -40,7 +40,6 @@ def signup():
     data = request.json
     users = load_data(USERS_FILE)
     
-    # Check if user exists
     for user in users:
         if user['phone_number'] == data.get('phone_number'):
             return jsonify(error="User already exists"), 400
@@ -104,7 +103,7 @@ def create_transaction():
     if amount > user['balance']:
         return jsonify(error="Insufficient balance"), 400
     
-    # Update balance
+
     user['balance'] -= amount
     save_data(USERS_FILE, users)
     

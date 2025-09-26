@@ -27,12 +27,12 @@ def handle_options(path):
 def generate_account_number():
     return ''.join(random.choices(string.digits, k=10))
 
-# User routes
+
 @app.route("/users", methods=["POST"])
 def signup():
     data = request.json
     
-    # Check if user exists
+    
     existing_user = User.query.filter_by(phone_number=data.get('phone_number')).first()
     if existing_user:
         return jsonify(error="User already exists"), 400
@@ -48,7 +48,7 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
     
-    # Create default mobile money account
+    
     account = Account(
         user_id=new_user.id,
         account_type='mobile_money',
