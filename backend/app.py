@@ -19,6 +19,14 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'ok', 'message': 'Server is running'}), 200
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({'message': 'M-Pesa API Server', 'status': 'running'}), 200
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=['OPTIONS'])
 def handle_options(path):
@@ -26,8 +34,12 @@ def handle_options(path):
 
 def load_data(filename):
     if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            return json.load(f)
+        try:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+                return data if data else []
+        except (json.JSONDecodeError, FileNotFoundError):
+            return []
     return []
 
 def save_data(filename, data):
@@ -83,15 +95,18 @@ def create_transaction():
     users = load_data(USERS_FILE)
     transactions = load_data(TRANSACTIONS_FILE)
     
+    print(f"DEBUG: Looking for user_id: {user_id}")
+    print(f"DEBUG: Available users: {[str(u.get('id')) for u in users]}")
+    
     # Find user
     user = None
     for u in users:
-        if str(u['id']) == user_id:
+        if str(u['id']) == str(user_id):
             user = u
             break
     
     if not user:
-        return jsonify(error="User not found"), 404
+        return jsonify(error=f"User not found. ID: {user_id}"), 404
     
     data = request.json
     amount = float(data.get('amount', 0))
@@ -370,4 +385,4 @@ def add_money():
     }), 200
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

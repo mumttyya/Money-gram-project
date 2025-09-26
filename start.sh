@@ -18,7 +18,7 @@ FRONTEND_PID=$!
 
 echo "Application started!"
 echo "Frontend: http://localhost:3000"
-echo "Backend: http://localhost:5000"
+echo "Backend: http://localhost:5001"
 echo ""
 echo "Press Ctrl+C to stop both servers"
 
