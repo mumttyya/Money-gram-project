@@ -34,7 +34,7 @@ function Login({ onLogin }) {
         const data = await response.json();
 
         if (response.ok) {
-          // ✅ Store user ID as token
+        
           localStorage.setItem('moneygram_token', data.user.id);
           localStorage.setItem('user', JSON.stringify(data.user));
 
