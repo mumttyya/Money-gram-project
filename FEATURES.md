@@ -15,13 +15,13 @@
 - Instant balance deduction
 - Transaction history tracking
 
-### 💳 Pay Bills
+### Pay Bills
 - Make payments to merchants
 - Flexible payment amounts
 - Merchant/recipient selection
 - Payment confirmation system
 
-### 🏧 Withdraw Cash
+###  Withdraw Cash
 - Simulate cash withdrawal
 - Balance verification before withdrawal
 - Withdrawal amount validation
