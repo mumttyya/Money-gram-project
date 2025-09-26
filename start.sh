@@ -4,7 +4,7 @@ echo " Starting M-Pesa Money Transfer Application..."
 
 # Start backend
 echo " Starting Flask backend..."
-cd server
+cd backend
 python3 app.py &
 BACKEND_PID=$!
 
@@ -12,7 +12,7 @@ sleep 3
 
 # Start frontend
 echo " Starting React frontend..."
-cd ../client
+cd ../frontend
 npm start &
 FRONTEND_PID=$!
 
