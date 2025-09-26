@@ -1,15 +1,15 @@
 # M-Pesa Application Features
 
-## 🎯 Core Features
+##  Core Features
 
-### 💸 Send Money
+###  Send Money
 - Transfer funds to any phone number
 - Real-time balance validation
 - Transaction confirmation messages
 - Recipient phone number input
 - Amount validation (positive numbers only)
 
-### 📱 Buy Airtime
+###  Buy Airtime
 - Purchase mobile airtime for any number
 - Support for different amounts
 - Instant balance deduction

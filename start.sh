@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "🚀 Starting Money-gram Project..."
+echo " Starting Money-gram Project..."
 
 # Start backend server
-echo "📡 Starting Flask backend..."
+echo " Starting Flask backend..."
 cd server
 python3 simple_app.py &
 BACKEND_PID=$!
@@ -12,14 +12,14 @@ BACKEND_PID=$!
 sleep 3
 
 # Start frontend
-echo "🌐 Starting React frontend..."
+echo " Starting React frontend..."
 cd ../client
 npm start &
 FRONTEND_PID=$!
 
-echo "✅ Project started!"
-echo "🔗 Frontend: http://localhost:3000"
-echo "🔗 Backend: http://localhost:5000"
+echo " Project started!"
+echo " Frontend: http://localhost:3000"
+echo " Backend: http://localhost:5000"
 echo ""
 echo "Press Ctrl+C to stop both servers"
 
