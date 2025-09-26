@@ -42,34 +42,34 @@
 - Session management with tokens
 - User-specific data access
 
-### 📋 User Profile
+###  User Profile
 - Username display on dashboard
 - Phone number identification
 - Personal balance tracking
 - Account creation date
 
-## 📞 Contact Management
+##  Contact Management
 
-### ➕ Add Contacts
+###  Add Contacts
 - Add contacts by phone number
 - Custom nickname assignment
 - Contact validation (user must exist)
 - Duplicate contact prevention
 
-### 📝 Contact Operations
+###  Contact Operations
 - View all saved contacts
 - Edit contact nicknames
 - Delete unwanted contacts
 - Contact search and organization
 
-## 🏦 Account Management
+##  Account Management
 
-### 💼 Multiple Account Types
+### Multiple Account Types
 - **Savings Account** - Long-term savings
 - **Checking Account** - Daily transactions
 - **Mobile Money** - M-Pesa wallet
 
-### 🔧 Account Operations
+###  Account Operations
 - Create new accounts
 - Set initial balance
 - View account details
@@ -77,71 +77,71 @@
 - Delete accounts
 - Account status management (Active/Inactive)
 
-## 📊 Transaction History
+## Transaction History
 
-### 📈 Transaction Tracking
+### Transaction Tracking
 - Complete transaction history
 - Sent and received transactions
 - Transaction type categorization
 - Date and time stamps
 - Transaction amount display
 
-### 🗑️ Transaction Management
+### Transaction Management
 - View transaction details
 - Delete transaction records
 - Transaction notes and descriptions
 - Real-time transaction updates
 
-## 🎨 User Interface Features
+##  User Interface Features
 
-### 🧭 Navigation
+### Navigation
 - Clean navigation bar
 - Route-based page switching
 - Breadcrumb navigation
 - Mobile-responsive menu
 
-### 📱 Responsive Design
+###  Responsive Design
 - Mobile-first approach
 - Tablet and desktop optimization
 - Touch-friendly buttons
 - Flexible grid layouts
 
-### 🎯 User Experience
+### User Experience
 - Intuitive card-based interface
 - Color-coded transaction types
 - Success/error message system
 - Loading states and feedback
 
-## ✅ Form Validation
+## Form Validation
 
-### 📝 Input Validation
+###  Input Validation
 - **Phone Numbers**: 10-digit format validation
 - **Amounts**: Positive number validation, maximum limits
 - **Usernames**: Length and character validation
 - **Passwords**: Security requirements
 - **Nicknames**: Length restrictions
 
-### 🔍 Real-time Validation
+###  Real-time Validation
 - Instant feedback on form errors
 - Field-level validation messages
 - Form submission prevention on errors
 - User-friendly error descriptions
 
-## 🔒 Security Features
+##  Security Features
 
-### 🛡️ Data Protection
+###  Data Protection
 - Input sanitization
 - SQL injection prevention
 - XSS protection
 - CORS configuration
 
-### 🔐 Authentication Security
+###  Authentication Security
 - Token-based authentication
 - Session management
 - User authorization checks
 - Protected API endpoints
 
-## 📊 Data Management
+##  Data Management
 
 ### 💾 Storage System
 - JSON file-based storage
