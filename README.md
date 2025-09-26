@@ -37,24 +37,14 @@ A full-stack web application built with React and Flask that simulates M-Pesa mo
 4. Component-based architecture
 5. Responsive grid layouts
 
-## Requirements Met
 
-- Flask API backend with React frontend
-- At least 3 models (User, Transaction, Account, Contact)
-- Two one-to-many relationships (User→Transactions, User→Accounts)
-- One many-to-many relationship (User↔User via Contacts with nickname)
-- Full CRUD operations on all resources
-- Formik validation on all forms
-- Data type and format validation
-- 3+ client-side routes with navigation
-- fetch() API connections
 
 ## Installation & Setup
 
 ### Prerequisites
-- Python 3.x
-- Node.js & npm
-- Flask
+1. Python 3.x
+2. Node.js & npm
+3. Flask
 
 ### Backend Setup
 ```bash
@@ -68,62 +58,6 @@ cd client
 npm install
 npm start
 ```
-
-## API Endpoints
-
-### Users
-- `POST /users` - Create user (signup)
-- `GET /users` - Get all users
-- `PUT /users/<id>` - Update user
-- `DELETE /users/<id>` - Delete user
-- `POST /login` - User login
-
-### Transactions
-- `POST /transactions` - Create transaction
-- `GET /transactions` - Get user transactions
-- `PUT /transactions/<id>` - Update transaction
-- `DELETE /transactions/<id>` - Delete transaction
-
-### Accounts
-- `POST /accounts` - Create account
-- `GET /accounts` - Get user accounts
-- `PUT /accounts/<id>` - Update account
-- `DELETE /accounts/<id>` - Delete account
-
-### Contacts
-- `POST /contacts` - Add contact
-- `GET /contacts` - Get user contacts
-- `PUT /contacts/<id>` - Update contact nickname
-- `DELETE /contacts/<id>` - Delete contact
-
-## UI Components
-
-### Pages
-- Dashboard (/) - Main interface with all features
-- Contacts (/contacts) - Contact management
-- Accounts (/accounts) - Account management  
-- Transactions (/transactions) - Transaction history
-
-### Features
-- Navigation Bar - Links between all pages
-- Form Validation - Real-time input validation
-- Delete Buttons - CRUD operations visible
-- Success/Error Messages - User feedback
-- Responsive Design - Works on all devices
-
-## Security Features
-
-- Input validation on all forms
-- Error handling for API calls
-- User authentication with tokens
-- CORS configuration for secure API access
-
-## Mobile-First Design
-
-- Responsive grid layouts
-- Touch-friendly buttons
-- Mobile-optimized forms
-- Clean, modern interface
 
 ## Getting Started
 
@@ -157,13 +91,18 @@ npm start
 ## Project Goals
 
 This project demonstrates:
-- Full-stack web development skills
-- Database relationship modeling
-- RESTful API design
-- Modern React development
-- Form validation and UX
-- Responsive web design
+1. Full-stack web development skills
+2. Database relationship modeling
+3. RESTful API design
+4. Modern React development
+5. Form validation and UX
+6. Responsive web design
 
 ## License
 
 This project is for educational purposes and demonstrates modern web development practices.
+
+## Author
+ 1. Collins Opiayo
+ 2. Mumtaza Mohamed
+ 
